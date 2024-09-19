@@ -31,12 +31,24 @@ const GET_METRICS = gql`
 // Use the API URL from environment variable
 const GRAPHQL_API_URL = process.env.REACT_APP_GRAPHQL_API_URL;
 
+// Sample fallback metrics data
+const fallbackMetricsData = [
+  { name: 'Patient Satisfaction', value: 78 },
+  { name: 'Efficiency', value: 85 },
+  { name: 'Patient Visits per Week', value: 120 },
+  { name: 'Treatment Success Rate', value: 90 },
+  { name: 'Average Wait Time', value: 15 },
+  { name: 'Patient Retention Rate', value: 70 },
+  { name: 'Healthcare Access Rate', value: 60 },
+  { name: 'Cost per Patient', value: 50 },
+];
+
 const App: React.FC = () => {
   const { loading, error, data } = useQuery(GET_METRICS, {
     context: {
-      uri: GRAPHQL_API_URL, // Ensure this is used for API requests
+      uri: GRAPHQL_API_URL,
       headers: {
-        "Authorization": `APIKey ${process.env.REACT_APP_API_KEY}`, // Ensure your API key is set in .env
+        "Authorization": `APIKey ${process.env.REACT_APP_API_KEY}`,
       },
     },
   });
@@ -46,13 +58,16 @@ const App: React.FC = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
+  // Check if data and metrics are available
+  const metrics = data?.metrics || fallbackMetricsData;
+
   // Prepare metrics data for the bar chart
   const metricsData = {
-    labels: data.metrics.map((metric: { name: string }) => metric.name),
+    labels: metrics.map((metric: { name: string }) => metric.name),
     datasets: [
       {
         label: 'Metrics Values',
-        data: data.metrics.map((metric: { value: number }) => metric.value),
+        data: metrics.map((metric: { value: number }) => metric.value),
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         borderColor: 'rgba(75, 192, 192, 1)',
         borderWidth: 1,
@@ -62,7 +77,7 @@ const App: React.FC = () => {
 
   // Filter data based on selected metric
   const selectedValue = selectedMetric
-    ? data.metrics.find((metric: { name: string }) => metric.name === selectedMetric)?.value || 0
+    ? metrics.find((metric: { name: string }) => metric.name === selectedMetric)?.value || 0
     : 0;
 
   const selectedData = {
@@ -117,7 +132,7 @@ const App: React.FC = () => {
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <Grid container spacing={3}>
-            {data.metrics.map((metric: { name: string; value: number }) => (
+            {metrics.map((metric: { name: string; value: number }) => (
               <Grid item xs={12} sm={6} key={metric.name}>
                 <Paper style={{ padding: '16px' }}>
                   <Typography variant="h6">{metric.name}</Typography>

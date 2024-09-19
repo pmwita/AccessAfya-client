@@ -28,19 +28,26 @@ const GET_METRICS = gql`
   }
 `;
 
-// Use the API URL from environment variable
-const GRAPHQL_API_URL = process.env.REACT_APP_GRAPHQL_API_URL;
-
 const App: React.FC = () => {
-  const { loading, error, data } = useQuery(GET_METRICS, {
-    context: {
-      uri: GRAPHQL_API_URL, // Ensure this is used for API requests
-    },
-  });
+  const { loading, error, data } = useQuery(GET_METRICS);
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
+
+  // Prepare metrics data for the bar chart
+  const metricsData = {
+    labels: data.metrics.map((metric: { name: string }) => metric.name),
+    datasets: [
+      {
+        label: 'Metrics Values',
+        data: data.metrics.map((metric: { value: number }) => metric.value),
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1,
+      },
+    ],
+  };
 
   // Filter data based on selected metric
   const selectedValue = selectedMetric
@@ -60,12 +67,22 @@ const App: React.FC = () => {
     ],
   };
 
+  // Line chart data that reflects selected metric
   const lineChartData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
     datasets: [
       {
         label: selectedMetric ? `Trend for ${selectedMetric}` : 'Access to Primary Care',
-        data: selectedMetric ? [selectedValue * 0.1, selectedValue * 0.2, selectedValue * 0.15, selectedValue * 0.25, selectedValue * 0.3, selectedValue * 0.4] : [10, 20, 15, 25, 30, 40],
+        data: selectedMetric
+          ? [
+              selectedValue * 0.1,
+              selectedValue * 0.2,
+              selectedValue * 0.15,
+              selectedValue * 0.25,
+              selectedValue * 0.3,
+              selectedValue * 0.4,
+            ]
+          : [10, 20, 15, 25, 30, 40],
         fill: false,
         backgroundColor: 'rgba(75, 192, 192, 1)',
         borderColor: 'rgba(75, 192, 192, 0.5)',
@@ -101,9 +118,11 @@ const App: React.FC = () => {
           </Grid>
         </Grid>
         <Grid item xs={12} md={6}>
+          <Typography variant="h5">Bar Chart (All Metrics)</Typography>
+          <Bar data={metricsData} options={{ responsive: true }} />
           {selectedMetric && (
             <>
-              <Typography variant="h5">Bar Chart</Typography>
+              <Typography variant="h5">Bar Chart (Selected Metric)</Typography>
               <Bar data={selectedData} options={{ responsive: true }} />
               <Typography variant="h5">Line Chart</Typography>
               <Line data={lineChartData} options={{ responsive: true }} />

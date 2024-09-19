@@ -28,8 +28,15 @@ const GET_METRICS = gql`
   }
 `;
 
+// Use the API URL from environment variable
+const GRAPHQL_API_URL = process.env.REACT_APP_GRAPHQL_API_URL;
+
 const App: React.FC = () => {
-  const { loading, error, data } = useQuery(GET_METRICS);
+  const { loading, error, data } = useQuery(GET_METRICS, {
+    context: {
+      uri: GRAPHQL_API_URL, // Ensure this is used for API requests
+    },
+  });
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
 
   if (loading) return <p>Loading...</p>;

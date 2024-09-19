@@ -35,8 +35,12 @@ const App: React.FC = () => {
   const { loading, error, data } = useQuery(GET_METRICS, {
     context: {
       uri: GRAPHQL_API_URL, // Ensure this is used for API requests
+      headers: {
+        "Authorization": `APIKey ${process.env.REACT_APP_API_KEY}`, // Ensure your API key is set in .env
+      },
     },
   });
+
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
 
   if (loading) return <p>Loading...</p>;
